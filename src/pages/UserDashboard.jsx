@@ -36,7 +36,7 @@ import {
 } from '@mui/material';
 import {
   Person,
-  ShoppingList,
+  ShoppingCart,
   Favorite,
   Store,
   Notifications,
@@ -171,7 +171,7 @@ const UserDashboard = () => {
           type: ACTIVITY_TYPES.LIST_CREATED,
           description: 'Creaste la lista "Compras del mes"',
           date: '2025-01-15T10:30:00Z',
-          icon: <ShoppingList />
+          icon: <ShoppingCart />
         },
         {
           id: 2,
@@ -366,7 +366,7 @@ const UserDashboard = () => {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <ShoppingList color="primary" sx={{ fontSize: 40 }} />
+                <ShoppingCart color="primary" sx={{ fontSize: 40 }} />
                 <Box>
                   <Typography variant="h4">{memoizedStatistics.totalLists}</Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -435,7 +435,7 @@ const UserDashboard = () => {
           aria-label="Dashboard navigation tabs"
         >
           <Tab 
-            icon={<ShoppingList />} 
+            icon={<ShoppingCart />} 
             label="Mis Listas" 
             id={`tab-${TABS.MY_LISTS}`}
             aria-controls={`tabpanel-${TABS.MY_LISTS}`}
