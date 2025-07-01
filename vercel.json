@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "ahorrayavz-comparador",
+  "name": "ahorrayavz.comparador",
   "builds": [
     {
       "src": "package.json",
