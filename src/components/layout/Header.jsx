@@ -16,7 +16,7 @@ import {
 } from '@mui/material'
 import {
   Search as SearchIcon,
-  ShoppingList as ShoppingListIcon,
+  ShoppingCart as ShoppingListIcon,
   AccountCircle as AccountIcon,
   Menu as MenuIcon,
   Store as StoreIcon,
