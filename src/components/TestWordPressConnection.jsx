@@ -11,7 +11,7 @@ import {
   Chip
 } from '@mui/material';
 import { useWordPressAPI } from '../hooks/useWordPressAPI';
-import { useExchangeRate } from '../contexts/ExchangeRateContext';
+import { useExchangeRateContext } from '../contexts/ExchangeRateContext';
 
 /**
  * Componente de prueba para verificar la conexión con WordPress
@@ -26,7 +26,7 @@ const TestWordPressConnection = () => {
   const [connectionStatus, setConnectionStatus] = useState('idle');
   
   const { apiClient } = useWordPressAPI();
-  const { exchangeRate } = useExchangeRate();
+  const { exchangeRate } = useExchangeRateContext();
 
   // Función para probar la conexión básica
   const testBasicConnection = async () => {
