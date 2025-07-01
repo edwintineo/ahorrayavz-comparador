@@ -18,25 +18,24 @@ import {
   Search as SearchIcon,
   ShoppingCart as ShoppingListIcon,
   AccountCircle as AccountIcon,
-  Menu as MenuIcon,
   Store as StoreIcon,
   ExitToApp as LogoutIcon
 } from '@mui/icons-material'
-import { useNavigate, Link } from 'react-router-dom'
-import { useStore } from '../../store/useStore'
-import SearchBar from '../search/SearchBar'
+import { useNavigate } from 'react-router-dom'
 
 const Header = () => {
   const navigate = useNavigate()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   
-  const { user, shoppingLists, logout, exchangeRate } = useStore()
-  const isAuthenticated = !!user
-  
+  // Estado simplificado para demostración
+  const [user, setUser] = useState(null)
   const [anchorEl, setAnchorEl] = useState(null)
-  const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null)
   const [showSearch, setShowSearch] = useState(false)
+
+  const isAuthenticated = !!user
+  const shoppingListCount = 0 // Simplificado
+  const exchangeRate = 50.0 // Tasa fija para demostración
 
   const handleUserMenuOpen = (event) => {
     setAnchorEl(event.currentTarget)
@@ -46,18 +45,18 @@ const Header = () => {
     setAnchorEl(null)
   }
 
-  const handleMobileMenuOpen = (event) => {
-    setMobileMenuAnchor(event.currentTarget)
-  }
-
-  const handleMobileMenuClose = () => {
-    setMobileMenuAnchor(null)
-  }
-
   const handleLogout = () => {
-    logout()
+    setUser(null)
     handleUserMenuClose()
     navigate('/')
+  }
+
+  const handleLogin = () => {
+    navigate('/login')
+  }
+
+  const handleRegister = () => {
+    navigate('/registro')
   }
 
   const formatExchangeRate = (rate) => {
@@ -100,31 +99,47 @@ const Header = () => {
             </Typography>
           </Box>
 
-          {/* Barra de búsqueda (desktop) */}
+          {/* Barra de búsqueda simple (desktop) */}
           {!isMobile && (
             <Box sx={{ flexGrow: 1, mx: 3, maxWidth: 600 }}>
-              <SearchBar />
+              <Button 
+                variant="outlined"
+                startIcon={<SearchIcon />}
+                onClick={() => navigate('/buscar')}
+                sx={{
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  color: 'white',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                  width: '100%',
+                  justifyContent: 'flex-start',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    borderColor: 'rgba(255,255,255,0.5)'
+                  }
+                }}
+              >
+                Buscar productos...
+              </Button>
             </Box>
           )}
 
           {/* Tasa de cambio */}
-          {exchangeRate && exchangeRate > 0 && (
-            <Box 
-              sx={{ 
-                display: { xs: 'none', sm: 'flex' },
-                alignItems: 'center',
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                borderRadius: 1,
-                px: 2,
-                py: 0.5,
-                mr: 2
-              }}
-            >
-              <Typography variant="caption" sx={{ color: 'white', opacity: 0.9 }}>
-                USD: {formatExchangeRate(exchangeRate)}
-              </Typography>
-            </Box>
-          )}
+          <Box 
+            sx={{ 
+              display: { xs: 'none', sm: 'flex' },
+              alignItems: 'center',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              borderRadius: 1,
+              px: 2,
+              py: 0.5,
+              mr: 2
+            }}
+          >
+            <Typography variant="caption" sx={{ color: 'white', opacity: 0.9 }}>
+              USD: {formatExchangeRate(exchangeRate)}
+            </Typography>
+          </Box>
 
           {/* Acciones del usuario */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -132,7 +147,7 @@ const Header = () => {
             {isMobile && (
               <IconButton 
                 color="inherit" 
-                onClick={() => setShowSearch(!showSearch)}
+                onClick={() => navigate('/buscar')}
               >
                 <SearchIcon />
               </IconButton>
@@ -143,7 +158,7 @@ const Header = () => {
               color="inherit" 
               onClick={() => navigate('/mis-listas')}
             >
-              <Badge badgeContent={shoppingLists.reduce((total, list) => total + list.items.length, 0)} color="secondary">
+              <Badge badgeContent={shoppingListCount} color="secondary">
                 <ShoppingListIcon />
               </Badge>
             </IconButton>
@@ -198,63 +213,68 @@ const Header = () => {
               </>
             ) : (
               <>
-                {!isMobile ? (
-                  <>
-                    <Button 
-                      color="inherit" 
-                      onClick={() => navigate('/login')}
-                      sx={{ textTransform: 'none' }}
-                    >
-                      Iniciar Sesión
-                    </Button>
-                    <Button 
-                      variant="contained" 
-                      color="secondary"
-                      onClick={() => navigate('/registro')}
-                      sx={{ 
-                        textTransform: 'none',
-                        ml: 1
-                      }}
-                    >
-                      Registrarse
-                    </Button>
-                  </>
-                ) : (
-                  <IconButton 
-                    color="inherit" 
-                    onClick={handleMobileMenuOpen}
-                  >
-                    <MenuIcon />
-                  </IconButton>
-                )}
+                <Button 
+                  color="inherit" 
+                  onClick={handleLogin}
+                  sx={{ 
+                    textTransform: 'none',
+                    display: { xs: 'none', sm: 'inline-flex' }
+                  }}
+                >
+                  Iniciar Sesión
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  color="inherit"
+                  onClick={handleRegister}
+                  sx={{ 
+                    textTransform: 'none',
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    '&:hover': {
+                      borderColor: 'white',
+                      backgroundColor: 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
+                  Registrarse
+                </Button>
               </>
             )}
           </Box>
         </Toolbar>
-
-        {/* Barra de búsqueda móvil */}
-        {isMobile && showSearch && (
-          <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <SearchBar />
-          </Box>
-        )}
       </AppBar>
 
-      {/* Menú móvil para usuarios no autenticados */}
-      <Menu
-        anchorEl={mobileMenuAnchor}
-        open={Boolean(mobileMenuAnchor)}
-        onClose={handleMobileMenuClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      >
-        <MenuItem onClick={() => { navigate('/login'); handleMobileMenuClose(); }}>
-          Iniciar Sesión
-        </MenuItem>
-        <MenuItem onClick={() => { navigate('/registro'); handleMobileMenuClose(); }}>
-          Registrarse
-        </MenuItem>
-      </Menu>
+      {/* Barra de búsqueda móvil */}
+      {isMobile && showSearch && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 64,
+            left: 0,
+            right: 0,
+            zIndex: theme.zIndex.drawer,
+            backgroundColor: 'white',
+            p: 2,
+            boxShadow: 2
+          }}
+        >
+          <Button 
+            variant="outlined"
+            startIcon={<SearchIcon />}
+            onClick={() => {
+              setShowSearch(false)
+              navigate('/buscar')
+            }}
+            sx={{
+              width: '100%',
+              justifyContent: 'flex-start',
+              textTransform: 'none'
+            }}
+          >
+            Buscar productos...
+          </Button>
+        </Box>
+      )}
     </>
   )
 }

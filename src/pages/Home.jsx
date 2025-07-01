@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React from 'react'
 import {
   Box,
   Container,
@@ -8,34 +8,18 @@ import {
   CardContent,
   Button,
   Chip,
-  Paper,
-  Avatar,
-  Rating,
-  Skeleton
+  Paper
 } from '@mui/material'
 import {
   TrendingUp as TrendingIcon,
-  LocalOffer as OfferIcon,
-  Store as StoreIcon,
-  Star as StarIcon
+  Store as StoreIcon
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
-import SearchBar from '../components/search/SearchBar'
-import ProductCard from '../components/products/ProductCard'
-import { useProducts, useStores, useWordPressAPI } from '../hooks/useWordPressAPI'
-import { useExchangeRateContext } from '../contexts/ExchangeRateContext'
 
 const Home = () => {
   const navigate = useNavigate()
-  const { exchangeRate } = useExchangeRateContext()
-  const { isConfigured } = useWordPressAPI()
-  const { products, loading: productsLoading, fetchProducts } = useProducts()
-  const { stores, loading: storesLoading, fetchStores } = useStores()
   
-  const [featuredProducts, setFeaturedProducts] = useState([])
-  const [topStores, setTopStores] = useState([])
-  
-  // Datos de ejemplo cuando WordPress no está configurado
+  // Datos de ejemplo simples
   const mockProducts = [
     {
       id: 1,
@@ -43,9 +27,7 @@ const Home = () => {
       price_bs: 45000,
       price_usd: 1.25,
       category: 'Supermercado',
-      brand: 'Diana',
-      image: '',
-      slug: 'arroz-diana-1kg'
+      brand: 'Diana'
     },
     {
       id: 2,
@@ -53,9 +35,7 @@ const Home = () => {
       price_bs: 38000,
       price_usd: 1.05,
       category: 'Supermercado',
-      brand: 'Mazeite',
-      image: '',
-      slug: 'aceite-mazeite-1l'
+      brand: 'Mazeite'
     },
     {
       id: 3,
@@ -63,9 +43,7 @@ const Home = () => {
       price_bs: 28000,
       price_usd: 0.78,
       category: 'Supermercado',
-      brand: 'P.A.N.',
-      image: '',
-      slug: 'harina-pan-1kg'
+      brand: 'P.A.N.'
     },
     {
       id: 4,
@@ -73,9 +51,7 @@ const Home = () => {
       price_bs: 15000,
       price_usd: 0.42,
       category: 'Supermercado',
-      brand: 'La Favorita',
-      image: '',
-      slug: 'pasta-la-favorita-500g'
+      brand: 'La Favorita'
     }
   ]
   
@@ -84,80 +60,24 @@ const Home = () => {
       id: 1,
       name: 'Supermercado Central',
       description: 'Tu supermercado de confianza con los mejores precios',
-      address: 'Av. Principal, Caracas',
-      rating: 4.5,
-      is_premium: true,
       category: 'Supermercado',
-      logo: ''
+      rating: 4.5
     },
     {
       id: 2,
       name: 'Farmacia San Rafael',
       description: 'Medicamentos y productos de salud al mejor precio',
-      address: 'Centro Comercial Plaza, Local 15',
-      rating: 4.2,
-      is_premium: false,
       category: 'Farmacia',
-      logo: ''
+      rating: 4.2
     },
     {
       id: 3,
       name: 'Ferretería El Martillo',
       description: 'Todo para la construcción y el hogar',
-      address: 'Zona Industrial, Galpón 8',
-      rating: 4.7,
-      is_premium: true,
       category: 'Ferretería',
-      logo: ''
+      rating: 4.7
     }
   ]
-
-  // Cargar datos iniciales
-  useEffect(() => {
-    const loadInitialData = async () => {
-      if (isConfigured) {
-        try {
-          // Cargar productos destacados desde WordPress
-          await fetchProducts({ 
-            perPage: 8, 
-            orderBy: 'date',
-            order: 'desc'
-          })
-          
-          // Cargar tiendas destacadas desde WordPress
-          await fetchStores({ 
-            perPage: 6,
-            featured: true
-          })
-        } catch (error) {
-          console.error('Error cargando datos desde WordPress:', error)
-          // Usar datos de ejemplo en caso de error
-          setFeaturedProducts(mockProducts)
-          setTopStores(mockStores)
-        }
-      } else {
-        // Usar datos de ejemplo cuando WordPress no está configurado
-        console.log('🔧 WordPress no configurado, usando datos de ejemplo')
-        setFeaturedProducts(mockProducts)
-        setTopStores(mockStores)
-      }
-    }
-
-    loadInitialData()
-  }, [isConfigured])
-
-  // Actualizar productos y tiendas destacadas cuando WordPress está configurado
-  useEffect(() => {
-    if (isConfigured && products.length > 0) {
-      setFeaturedProducts(products.slice(0, 8))
-    }
-  }, [products, isConfigured])
-
-  useEffect(() => {
-    if (isConfigured && stores.length > 0) {
-      setTopStores(stores.slice(0, 6))
-    }
-  }, [stores, isConfigured])
 
   const categories = [
     { name: 'Supermercado', icon: '🛒', color: '#4CAF50' },
@@ -172,19 +92,14 @@ const Home = () => {
     navigate(`/buscar?categoria=${encodeURIComponent(category)}`)
   }
 
-  const formatExchangeRate = (rate) => {
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'VES',
-      minimumFractionDigits: 2
-    }).format(rate)
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-VE').format(price)
   }
 
   return (
     <Box>
       {/* Hero Section */}
       <Box
-        className="search-container"
         sx={{
           background: 'linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%)',
           color: 'white',
@@ -216,56 +131,66 @@ const Home = () => {
               Compara precios en miles de productos y ahorra en tus compras
             </Typography>
             
-            {/* Tasa de cambio destacada */}
-            {exchangeRate.rate > 0 && (
-              <Paper
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  px: 3,
-                  py: 1,
-                  mb: 4,
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                <TrendingIcon sx={{ mr: 1 }} />
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  Tasa BCV: {formatExchangeRate(exchangeRate.rate)}
-                </Typography>
-              </Paper>
-            )}
+            {/* Tasa de cambio */}
+            <Paper
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                px: 3,
+                py: 1,
+                mb: 4,
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <TrendingIcon sx={{ mr: 1 }} />
+              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                Tasa BCV: Bs. 50.00
+              </Typography>
+            </Paper>
           </Box>
           
-          {/* Barra de búsqueda principal */}
-          <Box sx={{ maxWidth: 800, mx: 'auto' }}>
-            <SearchBar showFilters={true} />
+          {/* Barra de búsqueda simple */}
+          <Box sx={{ maxWidth: 800, mx: 'auto', textAlign: 'center' }}>
+            <Button 
+              variant="contained" 
+              size="large"
+              onClick={() => navigate('/buscar')}
+              sx={{
+                backgroundColor: 'white',
+                color: 'primary.main',
+                fontWeight: 600,
+                px: 4,
+                py: 2,
+                fontSize: '1.1rem'
+              }}
+            >
+              🔍 Buscar Productos
+            </Button>
           </Box>
         </Container>
       </Box>
 
       <Container maxWidth="lg">
-        {/* Mensaje informativo cuando WordPress no está configurado */}
-        {!isConfigured && (
-          <Box sx={{ mb: 4 }}>
-            <Paper
-              sx={{
-                p: 3,
-                backgroundColor: 'warning.light',
-                color: 'warning.contrastText',
-                textAlign: 'center'
-              }}
-            >
-              <Typography variant="h6" gutterBottom>
-                🔧 Modo de Demostración
-              </Typography>
-              <Typography variant="body1">
-                WordPress no está configurado. Se están mostrando datos de ejemplo.
-                Para conectar con WordPress, configure la variable VITE_WP_API_URL.
-              </Typography>
-            </Paper>
-          </Box>
-        )}
+        {/* Mensaje informativo */}
+        <Box sx={{ mb: 4 }}>
+          <Paper
+            sx={{
+              p: 3,
+              backgroundColor: 'info.light',
+              color: 'info.contrastText',
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              🚀 ¡Bienvenido a AhorraYa VZ!
+            </Typography>
+            <Typography variant="body1">
+              Plataforma de comparación de precios en Venezuela. 
+              Encuentra los mejores precios y ahorra en tus compras.
+            </Typography>
+          </Paper>
+        </Box>
         
         {/* Categorías populares */}
         <Box sx={{ mb: 6 }}>
@@ -330,30 +255,50 @@ const Home = () => {
           </Box>
           
           <Grid container spacing={3}>
-            {(productsLoading && isConfigured) ? (
-              // Skeleton loading solo cuando WordPress está configurado
-              Array.from(new Array(8)).map((_, index) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-                  <Card>
-                    <Skeleton variant="rectangular" height={200} />
-                    <CardContent>
-                      <Skeleton variant="text" height={24} />
-                      <Skeleton variant="text" height={20} width="60%" />
-                      <Skeleton variant="text" height={32} width="40%" />
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            ) : (
-              featuredProducts.map((product) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                  <ProductCard 
-                    product={product}
-                    showStore={false}
-                  />
-                </Grid>
-              ))
-            )}
+            {mockProducts.map((product) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+                <Card
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 3
+                    }
+                  }}
+                  onClick={() => navigate(`/producto/${product.id}`)}
+                >
+                  <Box
+                    sx={{
+                      height: 200,
+                      backgroundColor: 'grey.100',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '3rem'
+                    }}
+                  >
+                    📦
+                  </Box>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                      {product.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {product.brand} • {product.category}
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
+                        Bs. {formatPrice(product.price_bs)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        ${product.price_usd}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         </Box>
 
@@ -364,99 +309,69 @@ const Home = () => {
           </Typography>
           
           <Grid container spacing={3}>
-            {(storesLoading && isConfigured) ? (
-              // Skeleton loading solo cuando WordPress está configurado
-              Array.from(new Array(6)).map((_, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Card>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Skeleton variant="circular" width={48} height={48} />
-                        <Box sx={{ ml: 2, flexGrow: 1 }}>
-                          <Skeleton variant="text" height={24} />
-                          <Skeleton variant="text" height={20} width="60%" />
-                        </Box>
-                      </Box>
-                      <Skeleton variant="text" height={20} />
-                      <Skeleton variant="text" height={20} width="80%" />
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            ) : (
-              topStores.map((store) => (
-                <Grid item xs={12} sm={6} md={4} key={store.id}>
-                  <Card
-                    sx={{
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: 3
-                      }
-                    }}
-                    onClick={() => navigate(`/tienda/${store.id}`)}
-                  >
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Avatar
-                          src={store.logo}
-                          sx={{ width: 48, height: 48, mr: 2 }}
-                        >
-                          <StoreIcon />
-                        </Avatar>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {store.name}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Rating 
-                              value={store.rating} 
-                              readOnly 
-                              size="small" 
-                              precision={0.5}
-                            />
-                            <Typography variant="body2" color="text.secondary">
-                              ({store.rating})
-                            </Typography>
-                          </Box>
-                        </Box>
-                        {store.is_premium && (
-                          <Chip 
-                            label="Premium" 
-                            color="primary" 
-                            size="small"
-                            icon={<StarIcon />}
-                          />
-                        )}
-                      </Box>
-                      
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
+            {mockStores.map((store) => (
+              <Grid item xs={12} sm={6} md={4} key={store.id}>
+                <Card
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 3
+                    }
+                  }}
+                  onClick={() => navigate(`/tienda/${store.id}`)}
+                >
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Box
                         sx={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
+                          width: 48,
+                          height: 48,
+                          borderRadius: '50%',
+                          backgroundColor: 'primary.main',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          mr: 2
                         }}
                       >
-                        {store.description || store.address}
-                      </Typography>
-                      
-                      {store.category && (
-                        <Chip 
-                          label={store.category} 
-                          size="small" 
-                          variant="outlined"
-                          sx={{ mt: 1 }}
-                        />
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            )}
+                        <StoreIcon />
+                      </Box>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          {store.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          ⭐ {store.rating} • {store.category}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {store.description}
+                    </Typography>
+                    
+                    <Chip 
+                      label={store.category} 
+                      size="small" 
+                      variant="outlined"
+                      sx={{ mt: 1 }}
+                    />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         </Box>
 
