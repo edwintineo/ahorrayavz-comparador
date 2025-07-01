@@ -257,3 +257,4 @@ const useStore = create(
 )
 
 export default useStore
+export { useStore }
