@@ -5,6 +5,11 @@ import useStore from '../store/useStore'
 // Configuración base de la API
 const API_BASE_URL = import.meta.env.VITE_WP_API_URL || 'http://localhost/ahorrayavz-wp/wp-json'
 
+// Verificar si WordPress está configurado
+const isWordPressConfigured = () => {
+  return API_BASE_URL && API_BASE_URL !== '' && !API_BASE_URL.includes('tu-dominio-wordpress.com')
+}
+
 // Instancia de Axios configurada
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -46,6 +51,14 @@ export const useWordPressAPI = () => {
   const [error, setError] = useState(null)
 
   const handleRequest = useCallback(async (requestFn) => {
+    // Verificar si WordPress está configurado
+    if (!isWordPressConfigured()) {
+      const errorMessage = 'WordPress no está configurado. Configure VITE_WP_API_URL en las variables de entorno.'
+      setError(errorMessage)
+      console.warn('⚠️ WordPress API no configurada:', errorMessage)
+      return null
+    }
+
     setLoading(true)
     setError(null)
     
@@ -55,13 +68,20 @@ export const useWordPressAPI = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Error desconocido'
       setError(errorMessage)
+      console.error('❌ Error en API WordPress:', errorMessage)
       throw err
     } finally {
       setLoading(false)
     }
   }, [])
 
-  return { loading, error, handleRequest, apiClient }
+  return { 
+    loading, 
+    error, 
+    handleRequest, 
+    apiClient,
+    isConfigured: isWordPressConfigured()
+  }
 }
 
 // Hook específico para productos
@@ -290,10 +310,17 @@ export const useAuth = () => {
 
 // Hook para tasa de cambio
 export const useExchangeRate = () => {
-  const { handleRequest, loading, error } = useWordPressAPI()
+  const { handleRequest, loading, error, isConfigured } = useWordPressAPI()
   const { setExchangeRate, setExchangeRateLoading, setExchangeRateError } = useStore()
 
   const fetchExchangeRate = useCallback(async () => {
+    if (!isConfigured) {
+      // Si WordPress no está configurado, usar una tasa de ejemplo
+      const mockRate = 50.0 // Tasa de ejemplo
+      setExchangeRate(mockRate)
+      return mockRate
+    }
+
     setExchangeRateLoading(true)
     
     try {
@@ -304,14 +331,18 @@ export const useExchangeRate = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message
       setExchangeRateError(errorMessage)
-      throw err
+      // En caso de error, usar tasa de ejemplo
+      const fallbackRate = 50.0
+      setExchangeRate(fallbackRate)
+      return fallbackRate
     }
-  }, [setExchangeRate, setExchangeRateLoading, setExchangeRateError])
+  }, [isConfigured, setExchangeRate, setExchangeRateLoading, setExchangeRateError])
 
   return {
     loading,
     error,
-    fetchExchangeRate
+    fetchExchangeRate,
+    isConfigured
   }
 }
 

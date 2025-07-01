@@ -22,50 +22,142 @@ import {
 import { useNavigate } from 'react-router-dom'
 import SearchBar from '../components/search/SearchBar'
 import ProductCard from '../components/products/ProductCard'
-import { useProducts, useStores } from '../hooks/useWordPressAPI'
+import { useProducts, useStores, useWordPressAPI } from '../hooks/useWordPressAPI'
 import { useExchangeRateContext } from '../contexts/ExchangeRateContext'
 
 const Home = () => {
   const navigate = useNavigate()
   const { exchangeRate } = useExchangeRateContext()
+  const { isConfigured } = useWordPressAPI()
   const { products, loading: productsLoading, fetchProducts } = useProducts()
   const { stores, loading: storesLoading, fetchStores } = useStores()
   
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [topStores, setTopStores] = useState([])
+  
+  // Datos de ejemplo cuando WordPress no está configurado
+  const mockProducts = [
+    {
+      id: 1,
+      title: 'Arroz Diana 1kg',
+      price_bs: 45000,
+      price_usd: 1.25,
+      category: 'Supermercado',
+      brand: 'Diana',
+      image: '',
+      slug: 'arroz-diana-1kg'
+    },
+    {
+      id: 2,
+      title: 'Aceite Mazeite 1L',
+      price_bs: 38000,
+      price_usd: 1.05,
+      category: 'Supermercado',
+      brand: 'Mazeite',
+      image: '',
+      slug: 'aceite-mazeite-1l'
+    },
+    {
+      id: 3,
+      title: 'Harina P.A.N. 1kg',
+      price_bs: 28000,
+      price_usd: 0.78,
+      category: 'Supermercado',
+      brand: 'P.A.N.',
+      image: '',
+      slug: 'harina-pan-1kg'
+    },
+    {
+      id: 4,
+      title: 'Pasta La Favorita 500g',
+      price_bs: 15000,
+      price_usd: 0.42,
+      category: 'Supermercado',
+      brand: 'La Favorita',
+      image: '',
+      slug: 'pasta-la-favorita-500g'
+    }
+  ]
+  
+  const mockStores = [
+    {
+      id: 1,
+      name: 'Supermercado Central',
+      description: 'Tu supermercado de confianza con los mejores precios',
+      address: 'Av. Principal, Caracas',
+      rating: 4.5,
+      is_premium: true,
+      category: 'Supermercado',
+      logo: ''
+    },
+    {
+      id: 2,
+      name: 'Farmacia San Rafael',
+      description: 'Medicamentos y productos de salud al mejor precio',
+      address: 'Centro Comercial Plaza, Local 15',
+      rating: 4.2,
+      is_premium: false,
+      category: 'Farmacia',
+      logo: ''
+    },
+    {
+      id: 3,
+      name: 'Ferretería El Martillo',
+      description: 'Todo para la construcción y el hogar',
+      address: 'Zona Industrial, Galpón 8',
+      rating: 4.7,
+      is_premium: true,
+      category: 'Ferretería',
+      logo: ''
+    }
+  ]
 
   // Cargar datos iniciales
   useEffect(() => {
     const loadInitialData = async () => {
-      try {
-        // Cargar productos destacados
-        await fetchProducts({ 
-          perPage: 8, 
-          orderBy: 'date',
-          order: 'desc'
-        })
-        
-        // Cargar tiendas destacadas
-        await fetchStores({ 
-          perPage: 6,
-          featured: true
-        })
-      } catch (error) {
-        console.error('Error cargando datos iniciales:', error)
+      if (isConfigured) {
+        try {
+          // Cargar productos destacados desde WordPress
+          await fetchProducts({ 
+            perPage: 8, 
+            orderBy: 'date',
+            order: 'desc'
+          })
+          
+          // Cargar tiendas destacadas desde WordPress
+          await fetchStores({ 
+            perPage: 6,
+            featured: true
+          })
+        } catch (error) {
+          console.error('Error cargando datos desde WordPress:', error)
+          // Usar datos de ejemplo en caso de error
+          setFeaturedProducts(mockProducts)
+          setTopStores(mockStores)
+        }
+      } else {
+        // Usar datos de ejemplo cuando WordPress no está configurado
+        console.log('🔧 WordPress no configurado, usando datos de ejemplo')
+        setFeaturedProducts(mockProducts)
+        setTopStores(mockStores)
       }
     }
 
     loadInitialData()
-  }, [])
+  }, [isConfigured])
 
-  // Actualizar productos y tiendas destacadas
+  // Actualizar productos y tiendas destacadas cuando WordPress está configurado
   useEffect(() => {
-    setFeaturedProducts(products.slice(0, 8))
-  }, [products])
+    if (isConfigured && products.length > 0) {
+      setFeaturedProducts(products.slice(0, 8))
+    }
+  }, [products, isConfigured])
 
   useEffect(() => {
-    setTopStores(stores.slice(0, 6))
-  }, [stores])
+    if (isConfigured && stores.length > 0) {
+      setTopStores(stores.slice(0, 6))
+    }
+  }, [stores, isConfigured])
 
   const categories = [
     { name: 'Supermercado', icon: '🛒', color: '#4CAF50' },
@@ -153,6 +245,28 @@ const Home = () => {
       </Box>
 
       <Container maxWidth="lg">
+        {/* Mensaje informativo cuando WordPress no está configurado */}
+        {!isConfigured && (
+          <Box sx={{ mb: 4 }}>
+            <Paper
+              sx={{
+                p: 3,
+                backgroundColor: 'warning.light',
+                color: 'warning.contrastText',
+                textAlign: 'center'
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                🔧 Modo de Demostración
+              </Typography>
+              <Typography variant="body1">
+                WordPress no está configurado. Se están mostrando datos de ejemplo.
+                Para conectar con WordPress, configure la variable VITE_WP_API_URL.
+              </Typography>
+            </Paper>
+          </Box>
+        )}
+        
         {/* Categorías populares */}
         <Box sx={{ mb: 6 }}>
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
@@ -216,8 +330,8 @@ const Home = () => {
           </Box>
           
           <Grid container spacing={3}>
-            {productsLoading ? (
-              // Skeleton loading
+            {(productsLoading && isConfigured) ? (
+              // Skeleton loading solo cuando WordPress está configurado
               Array.from(new Array(8)).map((_, index) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
                   <Card>
@@ -250,8 +364,8 @@ const Home = () => {
           </Typography>
           
           <Grid container spacing={3}>
-            {storesLoading ? (
-              // Skeleton loading
+            {(storesLoading && isConfigured) ? (
+              // Skeleton loading solo cuando WordPress está configurado
               Array.from(new Array(6)).map((_, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
                   <Card>
