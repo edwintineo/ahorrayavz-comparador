@@ -51,7 +51,6 @@ import {
   Save,
   Cancel,
   TrendingUp,
-  ShoppingCart,
   Star,
   History,
   Settings,
